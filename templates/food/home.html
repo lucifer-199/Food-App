@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock title %}
+{% block body %}
+
+<div class="container my-3">
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome to Food App!</h1>
+        <p class="lead"></p>
+        <hr class="my-4">
+        <h3>Please Log in first of all to access the data of your search Query! </h3>
+        {% comment %} <a class="btn btn-primary btn-lg" href="/" role="button"></a> {% endcomment %}
+        <form method="get" action="/" class="my-2 my-lg-0 mr-2">
+        <br>
+        
+        <h5>Search your queries below :</h5>
+        <br>
+        <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="query"
+          id="query">
+          <br>
+          
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+
+        </form>
+    </div>
+</div>
+{% endblock body %}
