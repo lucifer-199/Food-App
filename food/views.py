@@ -6,6 +6,10 @@ from django.contrib.auth.models import User
 from food.serializers import *
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.views import APIView
 
@@ -89,7 +93,9 @@ class login(APIView):
                     self.object.last_login = datetime.datetime.now()
                     self.object.save(update_fields=['last_login'])
                     val={}
-                    # val['Token']=Token.objects.get(user=self.object).key
+                    refresh = RefreshToken.for_user(User.objects.filter(email=serializers.data.get("email")).first())
+                    val['refresh'] = str(refresh)
+                    val['access'] = str(refresh.access_token)
                     val['Id']= self.object.id
                     return Response(val)
                 else:
@@ -113,3 +119,12 @@ class RegisterUserView(APIView):
             return Response(val)
         else:
             return Response({'error':"Email already in use."})
+
+
+class DataView(APIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({'name':'ankit'})
