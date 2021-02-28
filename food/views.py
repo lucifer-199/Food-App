@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
-
+from .models import *
 from rest_framework.views import APIView
 
 import datetime
@@ -54,7 +54,9 @@ def handleSignup(request):
         val['refresh'] = str(refresh)
         val['access'] = str(refresh.access_token)
         val['Id']= myuser.id
+        messages.success(request,"Your token are: ")
         messages.success(request, val)
+        messages.success(request," Please keep your refresh token safe in order to refresh the token in future! ")
         return redirect('home')
     else:
         return HttpResponse('404- Not Found')
@@ -72,7 +74,9 @@ class HandleLoginView(APIView):
             val['refresh'] = str(refresh)
             val['access'] = str(refresh.access_token)
             val['Id']= user.id
+            messages.success(request,"Your token are: ")
             messages.success(request, val)
+            messages.success(request," Please keep your refresh token safe in order to refresh the token in future! ")
             return redirect('home')
         else:
             messages.warning(request, "Invalid Credentials, Please try again.")
@@ -129,10 +133,10 @@ def handleLogout(request):
 #             return Response({'error':"Email already in use."})
 
 
-# class DataView(APIView):
-
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         return Response({'name':'ankit'})
+class DataView(APIView):
+    # authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]     
+    def get(self, request):
+        queryset= Food.objects.all()
+        serializer= FoodSerializer(queryset,many=True)
+        return Response(serializer.data)

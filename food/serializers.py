@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-
+from .models import *
 class LoginSerializer(serializers.ModelSerializer):
     class Meta :
         model = User
@@ -8,6 +8,10 @@ class LoginSerializer(serializers.ModelSerializer):
         email = serializers.CharField(required=True)
         fields = ['email','password']
 
+class FoodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Food
+        fields = '__all__'
 
 class RegisterUserSerializer(serializers.ModelSerializer):
 
