@@ -7,7 +7,7 @@ from food.serializers import *
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
@@ -49,27 +49,35 @@ def handleSignup(request):
         myuser.first_name = fname
         myuser.last_name = lname
         myuser.save()
-        messages.success(request,"Your iCoder Account has been successfully created!")
+        refresh = RefreshToken.for_user(myuser)
+        val = {}
+        val['refresh'] = str(refresh)
+        val['access'] = str(refresh.access_token)
+        val['Id']= myuser.id
+        messages.success(request, val)
         return redirect('home')
     else:
         return HttpResponse('404- Not Found')
 
-def handleLogin(request):
-    if request.method == 'POST':
+class HandleLoginView(APIView):
+
+    def post(self, request):
         loginusername = request.POST['loginusername']
         loginpass = request.POST['loginpass']
-
         user = authenticate(username = loginusername, password = loginpass)
         if user is not None:
             login(request,user)
-            messages.success(request, "Successfully Logged In!")
+            refresh = RefreshToken.for_user(user)
+            val = {}
+            val['refresh'] = str(refresh)
+            val['access'] = str(refresh.access_token)
+            val['Id']= user.id
+            messages.success(request, val)
             return redirect('home')
         else:
             messages.warning(request, "Invalid Credentials, Please try again.")
             return redirect('home')
-
-
-    return HttpResponse("404 - Not found")
+        return HttpResponse("404 - Not found")
 
 def handleLogout(request):
     logout(request)
@@ -77,54 +85,54 @@ def handleLogout(request):
     return redirect('home')
 
 
-class login(APIView):
-    #permission_classes = (AllowAny,)
-    def post(self,request):
-        serializers = LoginSerializer(data=request.data)
-        if(serializers.is_valid()):
-            email=serializers.data.get("email")
-            password = serializers.data.get("password")
-            self.object = User.objects.filter(email=email).first()
-            if self.object == None:
-                return Response({'error':'User with this email and password not found'})
-            else:
-                if self.object.check_password(password):
-                    authenticate(self.object)
-                    self.object.last_login = datetime.datetime.now()
-                    self.object.save(update_fields=['last_login'])
-                    val={}
-                    refresh = RefreshToken.for_user(User.objects.filter(email=serializers.data.get("email")).first())
-                    val['refresh'] = str(refresh)
-                    val['access'] = str(refresh.access_token)
-                    val['Id']= self.object.id
-                    return Response(val)
-                else:
-                    return Response({'error':'Incorrect password'})
-        else:
-            return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+# class login(APIView):
+#     #permission_classes = (AllowAny,)
+#     def post(self,request):
+#         serializers = LoginSerializer(data=request.data)
+#         if(serializers.is_valid()):
+#             email=serializers.data.get("email")
+#             password = serializers.data.get("password")
+#             self.object = User.objects.filter(email=email).first()
+#             if self.object == None:
+#                 return Response({'error':'User with this email and password not found'})
+#             else:
+#                 if self.object.check_password(password):
+#                     authenticate(self.object)
+#                     self.object.last_login = datetime.datetime.now()
+#                     self.object.save(update_fields=['last_login'])
+#                     val={}
+#                     refresh = RefreshToken.for_user(User.objects.filter(email=serializers.data.get("email")).first())
+#                     val['refresh'] = str(refresh)
+#                     val['access'] = str(refresh.access_token)
+#                     val['Id']= self.object.id
+#                     return Response(val)
+#                 else:
+#                     return Response({'error':'Incorrect password'})
+#         else:
+#             return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RegisterUserView(APIView):
-    def post(self, request):
-        serializers=RegisterUserSerializer(data=request.data)
-        val= {}
-        self.object = User.objects.filter(email=request.data.get('email')).first()
-        if self.object is None:
-            if serializers.is_valid():
-                users=serializers.save()
-                val['Response']="Successfully registered a new user"
-                # val['Token']=Token.objects.get(user=users).key
-            else:
-                val= serializers.errors
-            return Response(val)
-        else:
-            return Response({'error':"Email already in use."})
+# class RegisterUserView(APIView):
+#     def post(self, request):
+#         serializers=RegisterUserSerializer(data=request.data)
+#         val= {}
+#         self.object = User.objects.filter(email=request.data.get('email')).first()
+#         if self.object is None:
+#             if serializers.is_valid():
+#                 users=serializers.save()
+#                 val['Response']="Successfully registered a new user"
+#                 # val['Token']=Token.objects.get(user=users).key
+#             else:
+#                 val= serializers.errors
+#             return Response(val)
+#         else:
+#             return Response({'error':"Email already in use."})
 
 
-class DataView(APIView):
+# class DataView(APIView):
 
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        return Response({'name':'ankit'})
+#     def get(self, request):
+#         return Response({'name':'ankit'})
